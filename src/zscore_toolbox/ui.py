@@ -268,14 +268,22 @@ class ClickWindow:
 
         # Label centered on the line with a dark background for readability
         cx = self.image.width // 2
-        ly = y - 10
+        label_text = f"{name}  (Y={y})"
+        text_width = len(label_text) * 7  # ~7px per char for Segoe UI 10 bold
+        pad_x, pad_y = 10, 4
+        half_w = text_width // 2 + pad_x
+        rect_top = y - 11
+        rect_bottom = y + 11
+        if rect_bottom - rect_top < 22:
+            rect_top = y - 11
+            rect_bottom = y + 11
         self.canvas.create_rectangle(
-            cx - 80, ly - 14, cx + 80, ly + 4,
-            fill="#000000", outline=color, width=1,
+            cx - half_w, rect_top, cx + half_w, rect_bottom,
+            fill="#111122", outline=color, width=1,
         )
         self.canvas.create_text(
-            cx, ly,
-            text=f"{name}  (Y={y})",
+            cx, y,
+            text=label_text,
             fill=color, font=("Segoe UI", 10, "bold"), anchor="center",
         )
 
