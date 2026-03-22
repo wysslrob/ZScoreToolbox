@@ -1,5 +1,7 @@
 # Z-Score Toolbox
 
+![Build](https://github.com/YOUR_USERNAME/ZScoreToolbox/actions/workflows/build.yml/badge.svg)
+
 A system tray tool for measuring Z-scores directly on screen.
 
 ## How it works
