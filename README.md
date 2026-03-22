@@ -33,7 +33,8 @@ pip install -r requirements.txt
 **3. Run:**
 
 ```bat
-python -m zscore_toolbox.main
+cd src
+py -m zscore_toolbox.main
 ```
 
 ---
