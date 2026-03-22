@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.7 — 2026-03-22
+
+- Result popup closes on focus loss
+- ESC works immediately without first click
+- Tray icon toggles between click and draw mode
+- +2 SD / -2 SD added to click mode for more accurate measurement
+- Draw mode is now the default action
+
 ## v1.0.6 — 2026-03-22
 
 - Draw Mode: freehand trace → automatic Mean/SD/Z-Score

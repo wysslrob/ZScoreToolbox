@@ -62,9 +62,11 @@ BTN_COLOR = "#3d3d6b"
 # ---------------------------------------------------------------------------
 
 STEPS = [
-    ("Mean",    "#00bfff", "Click the MEAN line"),
+    ("+2 SD",   "#66ff99", "Click the +2 SD line"),
     ("+1 SD",   "#00e676", "Click the +1 SD line"),
+    ("Mean",    "#00bfff", "Click the MEAN line"),
     ("-1 SD",   "#ff5252", "Click the -1 SD line"),
+    ("-2 SD",   "#ff8888", "Click the -2 SD line"),
     ("Point",   "#ffd740", "Click the measurement POINT"),
 ]
 
@@ -120,8 +122,12 @@ class ClickWindow:
 
         # --- Bindings ---
         self.win.bind("<Escape>", lambda _: self._cancel())
+        self.canvas.bind("<Escape>", lambda _: self._cancel())
         self.canvas.bind("<Button-1>", self._on_click)
         self.canvas.bind("<Motion>", self._on_motion)
+
+        # Ensure ESC works immediately without needing a click first
+        self.win.focus_force()
 
     # ----- step panel -----
 
@@ -210,12 +216,13 @@ class ClickWindow:
             self._ensure_header(idx, name, color)
 
     def _ensure_header(self, idx: int, name: str, color: str) -> None:
-        """Show 'Step N/4 — description' at top of panel."""
+        """Show 'Step N/total — description' at top of panel."""
         tag = "step_header"
         self.canvas.delete(tag)
+        total = len(STEPS)
         self.canvas.create_text(
             self.PANEL_WIDTH // 2, self.image.height - 70,
-            text=f"Step {idx+1}/4 — {name}",
+            text=f"Step {idx+1}/{total} — {name}",
             fill=color, font=("Segoe UI", 13, "bold"),
             anchor="s", tags=tag,
         )
@@ -558,6 +565,10 @@ def show_result(z: float, measure_again_callback=None) -> None:
               **btn_style).pack(side="left", padx=4)
 
     _center_popup(popup)
+
+    # Close popup when it loses focus
+    popup.bind("<FocusOut>", lambda e: popup.destroy())
+    popup.bind("<Button-1>", lambda e: popup.destroy() if e.widget == popup else None)
 
 
 def show_error(msg: str) -> None:
