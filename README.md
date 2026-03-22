@@ -20,6 +20,16 @@ Press **ESC** at any time to cancel.
 
 You can also trigger a measurement from anywhere on your desktop with the global hotkey **Ctrl+Alt+S**.
 
+## Draw Mode
+
+For a faster workflow, use **Draw Mode** (**Ctrl+Alt+D** or tray menu → *Draw Z-Score*):
+
+1. A screenshot appears with a dark overlay.
+2. Draw a freehand line along the curve or data you want to measure.
+3. The toolbox automatically calculates the **Mean** and **SD** from the drawn line and displays the Z-score — no need to click individual reference lines.
+
+This is ideal when you can trace a visible trend and want a quick Z-score without manually identifying Mean/±1 SD lines.
+
 ---
 ## Download
 👉 [ZScoreToolbox.exe](https://github.com/wysslrob/ZScoreToolbox/releases/latest/download/ZScoreToolbox.exe)
