@@ -6,7 +6,7 @@ A system tray tool for measuring Z-scores directly on screen.
 
 ## How it works
 
-1. Click the tray icon and select **Measure Z-Score**.
+1. Click the tray icon and select **Measure Z-Score**, or press **Ctrl+Alt+S** anywhere.
 2. A screenshot appears with a dark overlay — click four points in order:
    - **Mean** — the zero / mean line (blue)
    - **+1 SD** — one standard deviation above (green)
@@ -16,6 +16,8 @@ A system tray tool for measuring Z-scores directly on screen.
 4. The Z-score is shown in a popup with a visual gauge, copy button, and option to measure again.
 
 Press **ESC** at any time to cancel.
+
+You can also trigger a measurement from anywhere on your desktop with the global hotkey **Ctrl+Alt+S**.
 
 ---
 
