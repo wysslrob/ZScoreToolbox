@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Generate icon
+        run: py build_tools/generate_icon.py
+
+      - name: Build EXE
+        run: >
+          pyinstaller --onefile --windowed --name "ZScoreToolbox"
+          --paths src --icon=assets/icon.ico run.py
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/ZScoreToolbox.exe
