@@ -3,6 +3,7 @@
 import threading
 from pathlib import Path
 
+import keyboard
 from PIL import Image, ImageDraw
 import pystray
 
@@ -131,9 +132,16 @@ def main() -> None:
     _tray = pystray.Icon(
         "ZScoreToolbox",
         icon_image,
-        "ZScore Toolbox — Click to measure",
+        "ZScore Toolbox — Click to measure or press Ctrl+Alt+S",
         menu,
     )
+
+    def _hotkey_listener():
+        keyboard.add_hotkey('ctrl+alt+s', lambda: run_in_tk(start_measurement))
+        keyboard.wait()
+
+    threading.Thread(target=_hotkey_listener, daemon=True).start()
+
     _tray.run()
 
 

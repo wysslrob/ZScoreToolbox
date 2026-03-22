@@ -252,11 +252,17 @@ class ClickWindow:
             fill=color, width=2,
         )
 
-        # Label on the right side of the line
+        # Label centered on the line with a dark background for readability
+        cx = self.image.width // 2
+        ly = y - 10
+        self.canvas.create_rectangle(
+            cx - 80, ly - 14, cx + 80, ly + 4,
+            fill="#000000", outline=color, width=1,
+        )
         self.canvas.create_text(
-            self.image.width - 15, y - 10,
+            cx, ly,
             text=f"{name}  (Y={y})",
-            fill=color, font=("Segoe UI", 10, "bold"), anchor="e",
+            fill=color, font=("Segoe UI", 10, "bold"), anchor="center",
         )
 
         # Small crosshair marker at click point
