@@ -1,16 +1,17 @@
 # Z-Score Toolbox
 
-Windows system tray tool to measure Z-scores directly on screen.
+A system tray tool for measuring Z-scores directly on screen.
 
 ## How it works
 
-1. Click the tray icon and select **Z-Score messen**.
-2. A screenshot appears — click four points in order:
-   - **Mean** – the zero / mean line
-   - **+1 SD** – one standard deviation above
-   - **-1 SD** – one standard deviation below
-   - **Messpunkt** – the value to measure
-3. The Z-score is shown in a popup.
+1. Click the tray icon and select **Measure Z-Score**.
+2. A screenshot appears with a dark overlay — click four points in order:
+   - **Mean** — the zero / mean line (blue)
+   - **+1 SD** — one standard deviation above (green)
+   - **-1 SD** — one standard deviation below (red)
+   - **Point** — the value you want to measure (yellow)
+3. A step-by-step panel on the left guides you through each click.
+4. The Z-score is shown in a popup with a visual gauge, copy button, and option to measure again.
 
 Press **ESC** at any time to cancel.
 
@@ -61,12 +62,13 @@ The finished `ZScoreToolbox.exe` will be in the `dist\` folder.
 ```
 ZScoreToolbox/
 ├── src/zscore_toolbox/
-│   ├── main.py          # entry point, tray icon
-│   ├── capture.py       # screenshot logic
-│   ├── ui.py            # click window & popups
+│   ├── main.py          # entry point, tray icon, measurement workflow
+│   ├── capture.py       # screenshot capture via mss
+│   ├── ui.py            # click overlay, step panel, result/error popups
 │   └── calculator.py    # Z-score calculation
-├── assets/              # icon.ico
+├── assets/              # icon.ico (for PyInstaller builds)
 ├── build_tools/
 │   └── build.bat        # PyInstaller build script
+├── run.py               # development entry point
 └── requirements.txt
 ```
