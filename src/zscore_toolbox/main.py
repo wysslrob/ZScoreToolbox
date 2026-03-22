@@ -5,9 +5,9 @@ import threading
 from PIL import Image, ImageDraw
 import pystray
 
-from .calculator import compute_zscore
-from .capture import take_screenshot
-from .ui import (
+from zscore_toolbox.calculator import compute_zscore
+from zscore_toolbox.capture import take_screenshot
+from zscore_toolbox.ui import (
     ClickWindow,
     destroy_root,
     run_in_tk,
