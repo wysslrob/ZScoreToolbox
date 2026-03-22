@@ -1,29 +1,31 @@
 # Changelog
 
-## 1.1.0 — 2026-03-22
+## v1.0.4 — 2026-03-22
 
-### Added
-- Step-by-step instruction panel on the left side of the measurement overlay
-- Dark semi-transparent overlay on the screenshot for better contrast
-- Full-width horizontal crosshair line that follows the cursor
-- Live Y-coordinate display next to the cursor
-- Permanent full-width colored lines drawn at each clicked position
-- Centered step labels on each clicked line for better readability
-- Visual Z-score gauge bar (-3 to +3 range) in the result popup
-- "Copy to clipboard" button in the result popup
-- "Measure again" button in the result popup
-- "Last result" entry in the system tray menu (updates after each measurement)
-- Global hotkey **Ctrl+Alt+S** to trigger measurement from any window
-- Improved tray tooltip: "ZScore Toolbox — Click to measure or press Ctrl+Alt+S"
-- CHANGELOG.md and CONTRIBUTING.md
-- SECURITY.md with vulnerability reporting policy
+- Cursor now shows step label instead of Y-coordinate
+- Security audit workflow (Bandit + pip-audit)
+- SECURITY.md added
+- Full code audit and type hints
 
-### Changed
-- Translated all UI labels, error messages, comments, and documentation to English
-- Redesigned measurement overlay with color-coded steps and checkmarks
-- Improved result popup layout with gauge, copy, and measure-again actions
-- Extracted UI magic values into named constants for maintainability
+## v1.0.3 — 2026-03-22
 
-## 1.0.0
+- Global hotkey Ctrl+Alt+S
+- Result labels centered with dark background
 
-- Initial release with basic Z-score measurement from screen.
+## v1.0.2 — 2026-03-22
+
+- Fixed GitHub Actions build pipeline
+- Auto-generated app icon via generate_icon.py
+
+## v1.0.1 — 2026-03-22
+
+- Fixed GitHub Actions workflow (python vs py)
+- Pillow and mss added to workflow install step
+
+## v1.0.0 — 2026-03-22
+
+- Initial release
+- System tray tool with 4-click Z-score measurement
+- Dark overlay with step-by-step panel
+- Result popup with gauge, copy and measure-again buttons
+- Thread-safe Tkinter architecture
