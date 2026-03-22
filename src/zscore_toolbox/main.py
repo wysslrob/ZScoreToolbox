@@ -79,6 +79,8 @@ def start_measurement() -> None:
 # ---------------------------------------------------------------------------
 
 _ICON_PATH = Path(__file__).resolve().parent.parent.parent / "assets" / "icon.ico"
+_FALLBACK_ICON_SIZE = 64
+_FALLBACK_ICON_MARGIN = 10
 
 
 def _create_tray_icon() -> Image.Image:
@@ -92,10 +94,10 @@ def _create_tray_icon() -> Image.Image:
             pass  # fall through to generated icon
 
     # Fallback: draw a simple Z icon
-    size = 64
+    size = _FALLBACK_ICON_SIZE
     img = Image.new("RGBA", (size, size), (26, 26, 46, 255))
     draw = ImageDraw.Draw(img)
-    m = 10
+    m = _FALLBACK_ICON_MARGIN
     draw.line([(m, m), (size - m, m)], fill="#00bfff", width=5)
     draw.line([(size - m, m), (m, size - m)], fill="#00bfff", width=5)
     draw.line([(m, size - m), (size - m, size - m)], fill="#00bfff", width=5)

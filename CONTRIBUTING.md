@@ -20,8 +20,11 @@ Contributions are welcome! Here's how to get started.
 
 - Keep the UI simple and fast — this is a quick-measure tool
 - All user-facing text must be in English
+- Add type hints to all public functions
+- Use named constants for magic values (colors, delays, sizes)
 - Test that `run.py` still works after changes
 - Test that the PyInstaller build still produces a working EXE
+- Run `bandit -r src/` locally before submitting a PR to catch security issues
 
 ## Submitting changes
 

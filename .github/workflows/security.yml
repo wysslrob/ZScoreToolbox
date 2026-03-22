@@ -1,0 +1,64 @@
+name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 3 * * 1"  # Every Monday at 03:00 UTC
+
+jobs:
+  security:
+    name: Bandit & pip-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install security tools
+        run: pip install bandit pip-audit
+
+      - name: Run Bandit (SAST)
+        run: bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true  # let the next step decide whether to fail
+
+      - name: Fail on HIGH severity findings
+        run: |
+          python - <<'EOF'
+          import json, sys
+          with open("bandit-report.json") as f:
+              report = json.load(f)
+          high_issues = [
+              r for r in report.get("results", [])
+              if r.get("issue_severity", "").upper() == "HIGH"
+          ]
+          if high_issues:
+              print(f"::error::Bandit found {len(high_issues)} HIGH severity issue(s):")
+              for issue in high_issues:
+                  loc = f"{issue['filename']}:{issue['line_number']}"
+                  print(f"  [{issue['test_id']}] {issue['issue_text']} ({loc})")
+              sys.exit(1)
+          print("No HIGH severity issues found.")
+          EOF
+
+      - name: Run pip-audit (dependency vulnerabilities)
+        run: pip-audit --format json -o pip-audit-report.json
+        continue-on-error: true  # report is always uploaded even if vulnerabilities exist
+
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
