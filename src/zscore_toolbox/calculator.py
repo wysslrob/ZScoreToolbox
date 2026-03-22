@@ -3,16 +3,34 @@
 import numpy as np
 
 
-def compute_zscore(y_mean: float, y_plus1sd: float, y_minus1sd: float, y_point: float) -> float:
-    """Calculate a Z-score from four pixel y-coordinates.
+def compute_zscore(
+    y_mean: float,
+    y_plus1sd: float,
+    y_minus1sd: float,
+    y_point: float,
+    y_plus2sd: float | None = None,
+    y_minus2sd: float | None = None,
+) -> float:
+    """Calculate a Z-score from pixel y-coordinates.
 
-    The scale is derived from the vertical distance between Mean and +/-1 SD marks.
+    The scale is derived from the vertical distance between Mean and SD marks.
+    If +/-2 SD values are provided, all available SD distances are averaged
+    for a more accurate SD pixel calculation.
     Raises ValueError if the SD marks are too close together to be meaningful.
     """
-    sd_pixels = ((y_mean - y_plus1sd) + (y_minus1sd - y_mean)) / 2
+    sd_estimates: list[float] = [
+        y_mean - y_plus1sd,   # 1 SD above mean
+        y_minus1sd - y_mean,  # 1 SD below mean
+    ]
+    if y_plus2sd is not None:
+        sd_estimates.append((y_mean - y_plus2sd) / 2)  # 2 SD above → per-SD
+    if y_minus2sd is not None:
+        sd_estimates.append((y_minus2sd - y_mean) / 2)  # 2 SD below → per-SD
+
+    sd_pixels = sum(sd_estimates) / len(sd_estimates)
     if abs(sd_pixels) < 0.5:
         raise ValueError(
-            "Mean and +/-1 SD are too close together.\n"
+            "Mean and SD marks are too close together.\n"
             "Please place the points further apart."
         )
     return round((y_mean - y_point) / sd_pixels, 3)

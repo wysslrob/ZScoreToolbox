@@ -25,15 +25,21 @@ from zscore_toolbox.ui import (
 
 _tray: pystray.Icon | None = None
 _last_result: str = "—"
+_active_mode: str = "draw"  # "click" or "draw"
 
 
 def _rebuild_menu() -> None:
     """Rebuild the tray menu to reflect updated state."""
     if _tray is None:
         return
+    is_draw = _active_mode == "draw"
+    toggle_label = "Switch to Click Mode" if is_draw else "Switch to Draw Mode"
     _tray.menu = pystray.Menu(
-        pystray.MenuItem("Measure Z-Score  (Ctrl+Alt+S)", _on_measure, default=True),
-        pystray.MenuItem("Draw Z-Score  (Ctrl+Alt+D)", _on_draw, default=False),
+        pystray.MenuItem("Draw Z-Score  (Ctrl+Alt+D)", _on_draw,
+                         default=is_draw),
+        pystray.MenuItem("Measure Z-Score  (Ctrl+Alt+S)", _on_measure,
+                         default=not is_draw),
+        pystray.MenuItem(toggle_label, _on_toggle_mode),
         pystray.MenuItem(f"Last result: {_last_result}", None, enabled=False),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", _on_quit),
@@ -52,8 +58,9 @@ def _on_clicks_done(clicks) -> None:
     if clicks is None:
         return
     try:
-        (_, y_mean), (_, y_plus1sd), (_, y_minus1sd), (_, y_point) = clicks
-        z = compute_zscore(y_mean, y_plus1sd, y_minus1sd, y_point)
+        (_, y_plus2sd), (_, y_plus1sd), (_, y_mean), (_, y_minus1sd), (_, y_minus2sd), (_, y_point) = clicks
+        z = compute_zscore(y_mean, y_plus1sd, y_minus1sd, y_point,
+                           y_plus2sd=y_plus2sd, y_minus2sd=y_minus2sd)
         _last_result = f"{z:+.3f}"
         _rebuild_menu()
         show_result(z, measure_again_callback=lambda: run_in_tk(start_measurement))
@@ -147,6 +154,12 @@ def _on_draw(icon, item) -> None:
     run_in_tk(start_draw_measurement)
 
 
+def _on_toggle_mode(icon, item) -> None:
+    global _active_mode
+    _active_mode = "click" if _active_mode == "draw" else "draw"
+    _rebuild_menu()
+
+
 def _on_quit(icon, item) -> None:
     icon.stop()
     destroy_root()
@@ -165,8 +178,9 @@ def main() -> None:
 
     icon_image = _create_tray_icon()
     menu = pystray.Menu(
-        pystray.MenuItem("Measure Z-Score  (Ctrl+Alt+S)", _on_measure, default=True),
-        pystray.MenuItem("Draw Z-Score  (Ctrl+Alt+D)", _on_draw, default=False),
+        pystray.MenuItem("Draw Z-Score  (Ctrl+Alt+D)", _on_draw, default=True),
+        pystray.MenuItem("Measure Z-Score  (Ctrl+Alt+S)", _on_measure, default=False),
+        pystray.MenuItem("Switch to Click Mode", _on_toggle_mode),
         pystray.MenuItem(f"Last result: {_last_result}", None, enabled=False),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", _on_quit),
@@ -174,7 +188,7 @@ def main() -> None:
     _tray = pystray.Icon(
         "ZScoreToolbox",
         icon_image,
-        "ZScore Toolbox \u2014 Ctrl+Alt+S: Click mode | Ctrl+Alt+D: Draw mode",
+        "ZScore Toolbox \u2014 Ctrl+Alt+D: Draw | Ctrl+Alt+S: Click",
         menu,
     )
 
