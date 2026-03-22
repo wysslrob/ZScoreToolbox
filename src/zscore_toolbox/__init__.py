@@ -1,3 +1,3 @@
-"""Z-Score Toolbox – Windows System Tray tool for on-screen Z-score measurement."""
+"""Z-Score Toolbox — System tray tool for on-screen Z-score measurement."""
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
