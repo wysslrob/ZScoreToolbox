@@ -211,7 +211,7 @@ class ClickWindow:
     # ----- mouse interaction -----
 
     def _on_motion(self, event):
-        """Draw a full-width horizontal crosshair and show Y-coordinate."""
+        """Draw a full-width horizontal crosshair and show step label."""
         x, y = event.x, event.y
 
         # Delete previous crosshair and coord label
@@ -221,7 +221,9 @@ class ClickWindow:
             self.canvas.delete(self._coord_id)
 
         idx = len(self.clicks)
-        color = STEPS[idx][1] if idx < len(STEPS) else "#ffffff"
+        if idx >= len(STEPS):
+            return
+        name, color, _ = STEPS[idx]
 
         # Full-width horizontal line
         self._h_line_id = self.canvas.create_line(
@@ -229,10 +231,10 @@ class ClickWindow:
             fill=color, width=1, dash=(6, 4),
         )
 
-        # Y-coordinate label next to cursor
+        # Step label next to cursor
         self._coord_id = self.canvas.create_text(
             x + 20, y - 12,
-            text=f"Y: {y}",
+            text=name,
             fill=color, font=("Segoe UI", 10, "bold"), anchor="w",
         )
 
