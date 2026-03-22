@@ -20,6 +20,9 @@ Press **ESC** at any time to cancel.
 You can also trigger a measurement from anywhere on your desktop with the global hotkey **Ctrl+Alt+S**.
 
 ---
+## Download
+👉 [ZScoreToolbox.exe](https://github.com/wysslrob/ZScoreToolbox/releases/latest/download/ZScoreToolbox.exe)
+No installation required — just run it on Windows 10/11.
 
 ## Setup
 
