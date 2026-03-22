@@ -320,6 +320,149 @@ class ClickWindow:
 
 
 # ---------------------------------------------------------------------------
+# Interactive draw window (freehand drawing mode)
+# ---------------------------------------------------------------------------
+
+
+class DrawWindow:
+    """Full-screen overlay for freehand drawing mode."""
+
+    def __init__(self, image: Image.Image, done_callback) -> None:
+        self.image = image
+        self.done_callback = done_callback
+        self._points: list[tuple[int, int]] = []
+        self._drawing = False
+        self._tk_image = None
+
+        self.win = tk.Toplevel(_root)
+        self.win.attributes("-fullscreen", True)
+        self.win.attributes("-topmost", True)
+        self.win.configure(bg="black")
+        self.win.title("Z-Score Toolbox — Draw Mode")
+
+        # --- Main canvas with darkened screenshot ---
+        darkened = ImageEnhance.Brightness(image).enhance(OVERLAY_BRIGHTNESS)
+        self._tk_image = ImageTk.PhotoImage(darkened)
+
+        self.canvas = tk.Canvas(
+            self.win,
+            width=image.width,
+            height=image.height,
+            highlightthickness=0,
+            cursor="crosshair",
+            bg="black",
+        )
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas.create_image(0, 0, anchor="nw", image=self._tk_image)
+
+        # --- Instruction text centered at top ---
+        self.canvas.create_text(
+            image.width // 2, 30,
+            text="Hold left mouse button and trace the data line  |  ESC = Cancel",
+            fill="#00bfff", font=("Segoe UI", 14, "bold"),
+            anchor="center",
+        )
+
+        # --- ESC hint at bottom center ---
+        self.canvas.create_text(
+            image.width // 2, image.height - 30,
+            text="Press ESC to cancel",
+            fill="#888888", font=("Segoe UI", 12),
+            anchor="s",
+        )
+
+        # --- Warning label (hidden until needed) ---
+        self._warning_id = None
+
+        # --- Bindings ---
+        self.win.bind("<Escape>", lambda _: self._cancel())
+        self.canvas.bind("<ButtonPress-1>", self._on_press)
+        self.canvas.bind("<B1-Motion>", self._on_motion)
+        self.canvas.bind("<ButtonRelease-1>", self._on_release)
+
+    # ----- drawing interaction -----
+
+    def _on_press(self, event: tk.Event) -> None:  # type: ignore[type-arg]
+        self._drawing = True
+        self._points = [(event.x, event.y)]
+        # Clear previous warning if any
+        if self._warning_id:
+            self.canvas.delete(self._warning_id)
+            self._warning_id = None
+
+    def _on_motion(self, event: tk.Event) -> None:  # type: ignore[type-arg]
+        if not self._drawing:
+            return
+        prev = self._points[-1]
+        self._points.append((event.x, event.y))
+        self.canvas.create_line(
+            prev[0], prev[1], event.x, event.y,
+            fill="#00bfff", width=2,
+        )
+
+    def _on_release(self, event: tk.Event) -> None:  # type: ignore[type-arg]
+        self._drawing = False
+        if len(self._points) < 10:
+            self._warning_id = self.canvas.create_text(
+                self.image.width // 2, self.image.height // 2,
+                text="Line too short \u2014 draw a longer line",
+                fill="#ff5252", font=("Segoe UI", 14, "bold"),
+                anchor="center",
+            )
+            self._points = []
+        else:
+            self.win.after(200, self._finish)
+
+    # ----- finish & cancel -----
+
+    def _finish(self):
+        from .calculator import compute_zscore_from_points  # noqa: F401
+
+        ys = [p[1] for p in self._points]
+        mean_y = sum(ys) / len(ys)
+        sd_y = (sum((y - mean_y) ** 2 for y in ys) / len(ys)) ** 0.5
+
+        lines = [
+            (mean_y, "#00bfff", "Mean"),
+            (mean_y - 1 * sd_y, "#00e676", "+1 SD"),
+            (mean_y + 1 * sd_y, "#ff5252", "-1 SD"),
+            (mean_y - 2 * sd_y, "#66ff99", "+2 SD"),
+            (mean_y + 2 * sd_y, "#ff8888", "-2 SD"),
+        ]
+
+        cx = self.image.width // 2
+        for y_pos, color, label_text in lines:
+            self.canvas.create_line(
+                0, y_pos, self.image.width, y_pos,
+                fill=color, width=2,
+            )
+            text = f"{label_text}  (Y={int(y_pos)})"
+            text_width = len(text) * 7
+            pad_x = 10
+            half_w = text_width // 2 + pad_x
+            self.canvas.create_rectangle(
+                cx - half_w, y_pos - 11, cx + half_w, y_pos + 11,
+                fill="#111122", outline=color, width=1,
+            )
+            self.canvas.create_text(
+                cx, y_pos,
+                text=text,
+                fill=color, font=("Segoe UI", 10, "bold"), anchor="center",
+            )
+
+        self.win.after(800, self._close)
+
+    def _close(self):
+        points = list(self._points)
+        self.win.destroy()
+        self.done_callback(points)
+
+    def _cancel(self):
+        self.win.destroy()
+        self.done_callback(None)
+
+
+# ---------------------------------------------------------------------------
 # Result and error popups
 # ---------------------------------------------------------------------------
 
