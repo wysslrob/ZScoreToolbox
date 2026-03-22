@@ -2,6 +2,7 @@
 
 import queue
 import tkinter as tk
+from collections.abc import Callable
 from PIL import Image, ImageTk, ImageEnhance
 
 # ---------------------------------------------------------------------------
@@ -12,7 +13,7 @@ _tk_queue: queue.Queue = queue.Queue()
 _root: tk.Tk | None = None
 
 
-def run_in_tk(fn) -> None:
+def run_in_tk(fn: Callable[[], None]) -> None:
     """Schedule *fn* to run on the Tkinter main thread."""
     _tk_queue.put(fn)
 
@@ -33,17 +34,28 @@ def tk_mainloop() -> None:
                 fn()
         except queue.Empty:
             pass
-        _root.after(50, _poll)
+        _root.after(POLL_INTERVAL_MS, _poll)
 
-    _root.after(50, _poll)
+    _root.after(POLL_INTERVAL_MS, _poll)
     _root.mainloop()
 
 
 def destroy_root() -> None:
     """Destroy the root window after a short delay (called from any thread)."""
     if _root:
-        _root.after(100, _root.destroy)
+        _root.after(POPUP_DESTROY_DELAY_MS, _root.destroy)
 
+
+# ---------------------------------------------------------------------------
+# UI constants
+# ---------------------------------------------------------------------------
+
+OVERLAY_BRIGHTNESS = 0.35
+CLICK_DELAY_MS = 400
+POLL_INTERVAL_MS = 50
+POPUP_DESTROY_DELAY_MS = 100
+BG_COLOR = "#1a1a2e"
+BTN_COLOR = "#3d3d6b"
 
 # ---------------------------------------------------------------------------
 # Step definitions
@@ -66,7 +78,7 @@ class ClickWindow:
 
     PANEL_WIDTH = 260
 
-    def __init__(self, image: Image.Image, done_callback):
+    def __init__(self, image: Image.Image, done_callback: Callable[[list[tuple[int, int]] | None], None]) -> None:
         self.image = image
         self.done_callback = done_callback
         self.clicks: list[tuple[int, int]] = []
@@ -81,7 +93,7 @@ class ClickWindow:
         self.win.title("Z-Score Toolbox")
 
         # --- Main canvas with darkened screenshot ---
-        darkened = ImageEnhance.Brightness(image).enhance(0.35)
+        darkened = ImageEnhance.Brightness(image).enhance(OVERLAY_BRIGHTNESS)
         self._tk_image = ImageTk.PhotoImage(darkened)
 
         self.canvas = tk.Canvas(
@@ -197,7 +209,7 @@ class ClickWindow:
             name, color, _ = STEPS[idx]
             self._ensure_header(idx, name, color)
 
-    def _ensure_header(self, idx, name, color):
+    def _ensure_header(self, idx: int, name: str, color: str) -> None:
         """Show 'Step N/4 — description' at top of panel."""
         tag = "step_header"
         self.canvas.delete(tag)
@@ -210,7 +222,7 @@ class ClickWindow:
 
     # ----- mouse interaction -----
 
-    def _on_motion(self, event):
+    def _on_motion(self, event: tk.Event) -> None:  # type: ignore[type-arg]
         """Draw a full-width horizontal crosshair and show step label."""
         x, y = event.x, event.y
 
@@ -238,7 +250,7 @@ class ClickWindow:
             fill=color, font=("Segoe UI", 10, "bold"), anchor="w",
         )
 
-    def _on_click(self, event):
+    def _on_click(self, event: tk.Event) -> None:  # type: ignore[type-arg]
         idx = len(self.clicks)
         if idx >= len(STEPS):
             return
@@ -285,7 +297,7 @@ class ClickWindow:
                 self.canvas.delete(self._coord_id)
                 self._coord_id = None
             self.canvas.delete("step_header")
-            self.win.after(400, self._finish)
+            self.win.after(CLICK_DELAY_MS, self._finish)
         else:
             self._highlight_step(idx + 1)
 
@@ -314,7 +326,7 @@ def show_result(z: float, measure_again_callback=None) -> None:
     """Display the calculated Z-score in a centered popup with gauge and actions."""
     popup = tk.Toplevel(_root)
     popup.title("Z-Score Result")
-    popup.configure(bg="#1a1a2e")
+    popup.configure(bg=BG_COLOR)
     popup.resizable(False, False)
     popup.attributes("-topmost", True)
 
@@ -328,24 +340,24 @@ def show_result(z: float, measure_again_callback=None) -> None:
     arrow = "\u2191" if z > 0 else ("\u2193" if z < 0 else "=")
 
     # Header
-    tk.Label(popup, text="Z-Score", bg="#1a1a2e", fg="#aaaacc",
+    tk.Label(popup, text="Z-Score", bg=BG_COLOR, fg="#aaaacc",
              font=("Segoe UI", 11)).pack(pady=(18, 2))
 
     # Large Z value
-    tk.Label(popup, text=f"{z:+.3f}", bg="#1a1a2e", fg=color,
+    tk.Label(popup, text=f"{z:+.3f}", bg=BG_COLOR, fg=color,
              font=("Segoe UI", 36, "bold")).pack(padx=40)
 
     # Direction label
-    tk.Label(popup, text=f"{arrow} {direction}", bg="#1a1a2e", fg="#cccccc",
+    tk.Label(popup, text=f"{arrow} {direction}", bg=BG_COLOR, fg="#cccccc",
              font=("Segoe UI", 10)).pack(pady=(2, 10))
 
     # --- Visual gauge bar (-3 to +3) ---
-    gauge_frame = tk.Frame(popup, bg="#1a1a2e")
+    gauge_frame = tk.Frame(popup, bg=BG_COLOR)
     gauge_frame.pack(padx=20, pady=(0, 10))
 
     gauge_w, gauge_h = 280, 24
     gauge = tk.Canvas(gauge_frame, width=gauge_w, height=gauge_h,
-                      bg="#1a1a2e", highlightthickness=0)
+                      bg=BG_COLOR, highlightthickness=0)
     gauge.pack()
 
     # Gauge track
@@ -368,11 +380,11 @@ def show_result(z: float, measure_again_callback=None) -> None:
                       fill=color, outline="white", width=1)
 
     # --- Button row ---
-    btn_frame = tk.Frame(popup, bg="#1a1a2e")
+    btn_frame = tk.Frame(popup, bg=BG_COLOR)
     btn_frame.pack(pady=(4, 16))
 
     btn_style = dict(
-        bg="#3d3d6b", fg="white", font=("Segoe UI", 10),
+        bg=BTN_COLOR, fg="white", font=("Segoe UI", 10),
         relief="flat", padx=12, pady=6, cursor="hand2",
     )
 
@@ -401,11 +413,11 @@ def show_error(msg: str) -> None:
     """Display an error message in a centered popup."""
     popup = tk.Toplevel(_root)
     popup.title("Error")
-    popup.configure(bg="#1a1a2e")
+    popup.configure(bg=BG_COLOR)
     popup.attributes("-topmost", True)
-    tk.Label(popup, text=msg, bg="#1a1a2e", fg="#ff5252",
+    tk.Label(popup, text=msg, bg=BG_COLOR, fg="#ff5252",
              font=("Segoe UI", 11), padx=20, pady=20, wraplength=350).pack()
     tk.Button(popup, text="OK", command=popup.destroy,
-              bg="#3d3d6b", fg="white", font=("Segoe UI", 10),
+              bg=BTN_COLOR, fg="white", font=("Segoe UI", 10),
               relief="flat", padx=20, pady=6).pack(pady=(0, 16))
     _center_popup(popup)

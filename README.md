@@ -1,6 +1,7 @@
 # Z-Score Toolbox
 
 ![Build](https://github.com/wysslrob/ZScoreToolbox/actions/workflows/build.yml/badge.svg)
+![Security](https://github.com/wysslrob/ZScoreToolbox/actions/workflows/security.yml/badge.svg)
 
 A system tray tool for measuring Z-scores directly on screen.
 
