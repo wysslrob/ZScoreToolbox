@@ -7,10 +7,11 @@ import keyboard
 from PIL import Image, ImageDraw
 import pystray
 
-from zscore_toolbox.calculator import compute_zscore
+from zscore_toolbox.calculator import compute_zscore, compute_zscore_from_points
 from zscore_toolbox.capture import take_screenshot
 from zscore_toolbox.ui import (
     ClickWindow,
+    DrawWindow,
     destroy_root,
     run_in_tk,
     show_error,
@@ -31,7 +32,8 @@ def _rebuild_menu() -> None:
     if _tray is None:
         return
     _tray.menu = pystray.Menu(
-        pystray.MenuItem("Measure Z-Score", _on_measure, default=True),
+        pystray.MenuItem("Measure Z-Score  (Ctrl+Alt+S)", _on_measure, default=True),
+        pystray.MenuItem("Draw Z-Score  (Ctrl+Alt+D)", _on_draw, default=False),
         pystray.MenuItem(f"Last result: {_last_result}", None, enabled=False),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", _on_quit),
@@ -75,6 +77,39 @@ def start_measurement() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Draw measurement workflow
+# ---------------------------------------------------------------------------
+
+
+def _on_draw_done(points) -> None:
+    """Handle the result of the DrawWindow — runs on the Tkinter main thread."""
+    global _last_result
+    if points is None:
+        return
+    try:
+        y_values = [p[1] for p in points]
+        z, mean_y, sd_y = compute_zscore_from_points(y_values)
+        _last_result = f"{z:+.3f}"
+        _rebuild_menu()
+        show_result(z, measure_again_callback=lambda: run_in_tk(start_draw_measurement))
+    except ValueError as e:
+        show_error(str(e))
+
+
+def start_draw_measurement() -> None:
+    """Take a screenshot in a background thread, then open the DrawWindow."""
+    def _worker():
+        try:
+            img = take_screenshot()
+        except Exception as e:
+            run_in_tk(lambda: show_error(f"Screenshot failed:\n{e}"))
+            return
+        run_in_tk(lambda: DrawWindow(img, _on_draw_done))
+
+    threading.Thread(target=_worker, daemon=True).start()
+
+
+# ---------------------------------------------------------------------------
 # Tray icon
 # ---------------------------------------------------------------------------
 
@@ -108,6 +143,10 @@ def _on_measure(icon, item) -> None:
     run_in_tk(start_measurement)
 
 
+def _on_draw(icon, item) -> None:
+    run_in_tk(start_draw_measurement)
+
+
 def _on_quit(icon, item) -> None:
     icon.stop()
     destroy_root()
@@ -126,7 +165,8 @@ def main() -> None:
 
     icon_image = _create_tray_icon()
     menu = pystray.Menu(
-        pystray.MenuItem("Measure Z-Score", _on_measure, default=True),
+        pystray.MenuItem("Measure Z-Score  (Ctrl+Alt+S)", _on_measure, default=True),
+        pystray.MenuItem("Draw Z-Score  (Ctrl+Alt+D)", _on_draw, default=False),
         pystray.MenuItem(f"Last result: {_last_result}", None, enabled=False),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", _on_quit),
@@ -134,12 +174,13 @@ def main() -> None:
     _tray = pystray.Icon(
         "ZScoreToolbox",
         icon_image,
-        "ZScore Toolbox — Click to measure or press Ctrl+Alt+S",
+        "ZScore Toolbox \u2014 Ctrl+Alt+S: Click mode | Ctrl+Alt+D: Draw mode",
         menu,
     )
 
     def _hotkey_listener():
         keyboard.add_hotkey('ctrl+alt+s', lambda: run_in_tk(start_measurement))
+        keyboard.add_hotkey('ctrl+alt+d', lambda: run_in_tk(start_draw_measurement))
         keyboard.wait()
 
     threading.Thread(target=_hotkey_listener, daemon=True).start()

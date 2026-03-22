@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.6 — 2026-03-22
+
+- Draw Mode: freehand trace → automatic Mean/SD/Z-Score
+- Ctrl+Alt+D hotkey for draw mode
+- numpy dependency added
+
 ## v1.0.4 — 2026-03-22
 
 - Cursor now shows step label instead of Y-coordinate
