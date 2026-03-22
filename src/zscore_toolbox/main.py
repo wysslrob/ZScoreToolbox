@@ -1,6 +1,7 @@
 """Entry point: system tray icon and measurement workflow."""
 
 import threading
+from pathlib import Path
 
 from PIL import Image, ImageDraw
 import pystray
@@ -76,8 +77,20 @@ def start_measurement() -> None:
 # Tray icon
 # ---------------------------------------------------------------------------
 
+_ICON_PATH = Path(__file__).resolve().parent.parent.parent / "assets" / "icon.ico"
+
+
 def _create_tray_icon() -> Image.Image:
-    """Create a small icon image for the system tray."""
+    """Load icon.ico if it exists, otherwise generate a simple fallback."""
+    if _ICON_PATH.exists():
+        try:
+            img = Image.open(_ICON_PATH)
+            img.load()
+            return img
+        except Exception:
+            pass  # fall through to generated icon
+
+    # Fallback: draw a simple Z icon
     size = 64
     img = Image.new("RGBA", (size, size), (26, 26, 46, 255))
     draw = ImageDraw.Draw(img)

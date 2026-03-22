@@ -47,13 +47,25 @@ py run.py
 pip install pyinstaller
 ```
 
-**2. Place your icon at `assets\icon.ico`, then run:**
+**2. Generate the application icon:**
+
+```bat
+py build_tools/generate_icon.py
+```
+
+This creates `assets\icon.ico` with all required sizes (16–256 px).
+The build script runs this automatically, but you can also run it
+manually to preview the icon beforehand.
+
+**3. Build the EXE:**
 
 ```bat
 build_tools\build.bat
 ```
 
-The finished `ZScoreToolbox.exe` will be in the `dist\` folder.
+The build script generates the icon first, then runs PyInstaller with
+`--icon=assets/icon.ico`. The finished `ZScoreToolbox.exe` will be in
+the `dist\` folder.
 
 ---
 
@@ -68,7 +80,8 @@ ZScoreToolbox/
 │   └── calculator.py    # Z-score calculation
 ├── assets/              # icon.ico (for PyInstaller builds)
 ├── build_tools/
-│   └── build.bat        # PyInstaller build script
+│   ├── build.bat        # PyInstaller build script
+│   └── generate_icon.py # generates assets/icon.ico via Pillow
 ├── run.py               # development entry point
 └── requirements.txt
 ```
