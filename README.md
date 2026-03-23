@@ -4,7 +4,7 @@
 ![Security](https://github.com/wysslrob/ZScoreToolbox/actions/workflows/security.yml/badge.svg)
 
 A system tray tool for measuring Z-scores directly on screen.
-
+![Demo](assets/demo.gif)
 ## How it works
 
 1. Click the tray icon and select **Measure Z-Score**, or press **Ctrl+Alt+S** anywhere.
